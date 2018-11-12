@@ -18,6 +18,16 @@ public class InfoService extends LdapService {
      */
     @WebMethod(operationName = "version")
     public String version() {
+        return version_1_0_0_2();
+    }
+
+    private String version_1_0_0_1() {
+        // Создание проекта
         return "1.0.0.1";
+    }
+
+    private String version_1_0_0_2() {
+        // Реализовано чтение GECOS
+        return "1.0.0.2";
     }
 }

@@ -99,14 +99,35 @@ public class LdapService {
 
         gssapiProperties.setEnableGSSAPIDebugging(true);
 
-        GSSAPIBindRequest bindRequest =
-                new GSSAPIBindRequest(gssapiProperties);
+        GSSAPIBindRequest bindRequest = new GSSAPIBindRequest(gssapiProperties);
 
         LDAPConnection ldapConnection = new LDAPConnection(
                 connection.getHost(), connection.getPort());
         BindResult bindResult = ldapConnection.bind(bindRequest);
 
         return ldapConnection;
+    }
+
+    @WebMethod(operationName = "addAttribute")
+    public boolean addAttribute(
+            @WebParam(name = "uuid") String uuid,
+            @WebParam(name = "dn") String dn,
+            @WebParam(name = "name") String name,
+            @WebParam(name = "value") String value) throws Exception {
+
+        LDAPConnection ldapConnection = getConnection(UUID.fromString(uuid));
+        if (ldapConnection != null) {
+            if (ldapConnection.isConnected()) {
+                Modification mod = new Modification(ModificationType.ADD, name, value);
+                ModifyRequest modifyRequest = new ModifyRequest(dn, mod);
+                LDAPResult modifyResult = ldapConnection.modify(modifyRequest);
+            } else {
+                throw new Exception("Connection was closed");
+            }
+        } else {
+            throw new Exception("Connection not found");
+        }
+        return true;
     }
 
     /**
@@ -150,7 +171,7 @@ public class LdapService {
                             searchEntry.getAttributes().stream()
                                 .map(attr -> new LdapAttribute(
                                         attr.getName(),
-                                        attr.needsBase64Encoding() ? null : attr.getValue()))
+                                        !attr.needsBase64Encoding() || attr.getName().equals("gecos") ? attr.getValue() : null))
                                 .collect(Collectors.toList())))
                     .collect(Collectors.toList());
             } else {
