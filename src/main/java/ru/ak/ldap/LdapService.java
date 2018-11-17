@@ -64,18 +64,22 @@ public class LdapService {
             @WebParam(name = "connection") Connection connection,
             @WebParam(name = "viewLdap") ViewLdap viewLdap) throws Exception {
 
-        LDAPConnection ldapConnection;
+        LDAPConnection ldapConnection = null;
 
-        // Windows Active Directory
-        if (viewLdap == ViewLdap.AD) {
-            ldapConnection = auth_simple(connection);
+        try {
+            // Windows Active Directory
+            if (viewLdap == ViewLdap.AD) {
+                ldapConnection = auth_simple(connection);
 
-        // Astra Linux Directory
-        } else if (viewLdap == ViewLdap.ALD) {
-            ldapConnection = auth_GSSAPI(connection);
+                // Astra Linux Directory
+            } else if (viewLdap == ViewLdap.ALD) {
+                ldapConnection = auth_GSSAPI(connection);
 
-        } else {
-            throw new Exception("No support this view LDAP");
+            } else {
+                throw new Exception("No support this view LDAP");
+            }
+        } catch (LDAPException ex) {
+            throw new Exception(ex.getResultCode().toString());
         }
 
         return addConnection(ldapConnection).toString();
@@ -169,9 +173,7 @@ public class LdapService {
                         searchEntry -> new LdapEntry(
                             searchEntry.getDN(),
                             searchEntry.getAttributes().stream()
-                                .map(attr -> new LdapAttribute(
-                                        attr.getName(),
-                                        !attr.needsBase64Encoding() || attr.getName().equals("gecos") ? attr.getValue() : null))
+                                .map(attr -> new LdapAttribute(attr.getName(), AttributeReader.read(attr)))
                                 .collect(Collectors.toList())))
                     .collect(Collectors.toList());
             } else {
