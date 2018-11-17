@@ -19,9 +19,11 @@ public class AttributeReader {
         } else  if (name.equalsIgnoreCase("thumbnailPhoto")) {
             result = readThumbnailPhoto(attr);
 
+        } else if (name.equalsIgnoreCase("objectGUID")) {
+            result = readObjectGuid(attr);
+
         } else if (!attr.needsBase64Encoding()) {
             result = attr.getValue();
-
         }
 
         return result;
@@ -33,5 +35,9 @@ public class AttributeReader {
 
     private static String readThumbnailPhoto(Attribute attr) {
         return Base64.encode(attr.getValueByteArray());
+    }
+
+    private static String readObjectGuid(Attribute attr) {
+        return UUIDUtils.bytesToUUID(attr.getValueByteArray()).toString();
     }
 }

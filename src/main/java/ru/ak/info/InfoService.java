@@ -18,7 +18,7 @@ public class InfoService extends LdapService {
      */
     @WebMethod(operationName = "version")
     public String version() {
-        return version_1_0_0_3();
+        return version_1_0_0_4();
     }
 
     private String version_1_0_0_1() {
@@ -34,5 +34,10 @@ public class InfoService extends LdapService {
     private String version_1_0_0_3() {
         // Реализовано чтение thumbnailPhoto
         return "1.0.0.3";
+    }
+
+    private String version_1_0_0_4() {
+        // Чтение атрибута objectGUID
+        return "1.0.0.4";
     }
 }
