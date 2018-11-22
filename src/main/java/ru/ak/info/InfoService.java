@@ -18,7 +18,7 @@ public class InfoService extends LdapService {
      */
     @WebMethod(operationName = "version")
     public String version() {
-        return version_1_0_0_4();
+        return version_1_0_0_5();
     }
 
     private String version_1_0_0_1() {
@@ -39,5 +39,11 @@ public class InfoService extends LdapService {
     private String version_1_0_0_4() {
         // Чтение атрибута objectGUID
         return "1.0.0.4";
+    }
+
+    private String version_1_0_0_5() {
+        // Добавление чтения единиц с указанием baseDN, а также указанных атрибутов
+        // Добавление метода для получения всех возможных атрибутов
+        return "1.0.0.5";
     }
 }

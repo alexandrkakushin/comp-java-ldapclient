@@ -1,18 +1,16 @@
 package ru.ak.ldap;
 
+import com.unboundid.asn1.ASN1OctetString;
 import com.unboundid.ldap.sdk.*;
-import ru.ak.model.Connection;
-import ru.ak.model.LdapAttribute;
-import ru.ak.model.LdapEntry;
-import ru.ak.model.LdapSearch;
+import com.unboundid.ldap.sdk.controls.SimplePagedResultsControl;
+import com.unboundid.util.LDAPTestUtils;
+import ru.ak.model.*;
+import ru.ak.model.ResponseAvailableAttributes;
 
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebService;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -22,7 +20,7 @@ import java.util.stream.Collectors;
 @WebService(name = "LdapService", serviceName = "LdapService", portName = "LdapServicePort")
 public class LdapService {
 
-    Map<UUID, LDAPConnection> connections = new HashMap<>();
+    private Map<UUID, LDAPConnection> connections = new HashMap<>();
 
     /**
      * Получение LDAP-соединения по уникальному идентификатору
@@ -47,6 +45,21 @@ public class LdapService {
     /**
      * Подключения
     */
+
+    private LDAPConnection getLdapConnection(UUID uuid) throws Exception {
+
+        LDAPConnection ldapConnection = getConnection(uuid);
+
+        if (ldapConnection == null) {
+            throw new Exception("Connection not found");
+        } else {
+            if (!ldapConnection.isConnected()) {
+                throw new Exception("Connection was closed");
+            }
+        }
+
+        return ldapConnection;
+    }
 
     @WebMethod(operationName = "disconnect")
     public void disconnect(@WebParam(name = "uuid") String uuid) {
@@ -107,7 +120,8 @@ public class LdapService {
 
         LDAPConnection ldapConnection = new LDAPConnection(
                 connection.getHost(), connection.getPort());
-        BindResult bindResult = ldapConnection.bind(bindRequest);
+
+        ldapConnection.bind(bindRequest);
 
         return ldapConnection;
     }
@@ -124,7 +138,7 @@ public class LdapService {
             if (ldapConnection.isConnected()) {
                 Modification mod = new Modification(ModificationType.ADD, name, value);
                 ModifyRequest modifyRequest = new ModifyRequest(dn, mod);
-                LDAPResult modifyResult = ldapConnection.modify(modifyRequest);
+                ldapConnection.modify(modifyRequest);
             } else {
                 throw new Exception("Connection was closed");
             }
@@ -139,48 +153,81 @@ public class LdapService {
     */
 
     @SuppressWarnings("ValidExternallyBoundObject")
-    @WebMethod(operationName = "searchAll")
-    public LdapSearch searchAll(
-            @WebParam(name = "uuid") String uuid,
-            @WebParam(name = "domain") String domain) throws Exception {
-        return search(UUID.fromString(uuid), domain, "(objectClass=*)");
+    @WebMethod(operationName = "searchByFilter")
+    public LdapSearch searchByFilter(
+            @WebParam(name = "parameters") SearchParameters parameters,
+            @WebParam(name = "attributes") String attributes) throws Exception {
+
+        return search(parameters,
+                attributes.isEmpty() ? null : attributes.split(Pattern.quote(",")));
     }
 
     @SuppressWarnings("ValidExternallyBoundObject")
-    @WebMethod(operationName = "searchByFilter")
-    public LdapSearch searchByFilter(
-            @WebParam(name = "uuid") String uuid,
-            @WebParam(name = "domain") String domain,
-            @WebParam(name = "filter") String filter) throws Exception {
-        return search(UUID.fromString(uuid), domain, filter);
+    @WebMethod(operationName = "availableAttributes")
+    public ResponseAvailableAttributes availableAttributes(
+            @WebParam(name = "parameters") SearchParameters parameters) throws Exception {
+
+        ResponseAvailableAttributes result = new ResponseAvailableAttributes(new HashSet<>());
+
+        LDAPConnection ldapConnection = getLdapConnection(UUID.fromString(parameters.getUuid()));
+        SearchRequest searchRequest = new SearchRequest(
+                parameters.getBaseDn(), SearchScope.SUB, parameters.getFilter());
+
+        ASN1OctetString resumeCookie = null;
+        while (true) {
+            searchRequest.setControls(new SimplePagedResultsControl(100, resumeCookie));
+            SearchResult searchResult = ldapConnection.search(searchRequest);
+
+            searchResult.getSearchEntries()
+                .forEach(
+                    searchResultEntry -> searchResultEntry.getAttributes()
+                        .forEach(
+                            attribute -> {
+                                result.getAttributes().add(attribute.getName());
+                            })
+                );
+
+            LDAPTestUtils.assertHasControl(searchResult, SimplePagedResultsControl.PAGED_RESULTS_OID);
+            SimplePagedResultsControl responseControl = SimplePagedResultsControl.get(searchResult);
+            if (responseControl.moreResultsToReturn()) {
+                resumeCookie = responseControl.getCookie();
+            } else {
+                break;
+            }
+        }
+        return result;
     }
 
-    private LdapSearch search(UUID uuid, String domain, String filter) throws Exception {
+    private LdapSearch search(SearchParameters parameters, String[] attributes) throws Exception {
 
-        List<LdapEntry> entries;
+        List<LdapEntry> entries = new ArrayList<>();
 
-        LDAPConnection ldapConnection = getConnection(uuid);
-        if (ldapConnection != null) {
-            if (ldapConnection.isConnected()) {
-                String[] dc = domain.split(Pattern.quote("."));
-                StringBuilder sbDn = new StringBuilder();
-                for (int i = 0; i < dc.length; i++) {
-                    sbDn.append(String.format("dc=%s%s", dc[i], i < dc.length - 1 ? "," : ""));
-                }
+        LDAPConnection ldapConnection = getLdapConnection(UUID.fromString(parameters.getUuid()));
 
-                entries = ldapConnection.search(sbDn.toString(), SearchScope.SUB, filter).getSearchEntries().stream()
-                    .map(
-                        searchEntry -> new LdapEntry(
-                            searchEntry.getDN(),
-                            searchEntry.getAttributes().stream()
-                                .map(attr -> new LdapAttribute(attr.getName(), AttributeReader.read(attr)))
-                                .collect(Collectors.toList())))
-                    .collect(Collectors.toList());
+        SearchRequest searchRequest = new SearchRequest(
+                parameters.getBaseDn(), SearchScope.SUB, parameters.getFilter(), attributes);
+
+        ASN1OctetString resumeCookie = null;
+        while (true) {
+            searchRequest.setControls(new SimplePagedResultsControl(100, resumeCookie));
+            SearchResult searchResult = ldapConnection.search(searchRequest);
+
+            entries.addAll(
+                searchResult.getSearchEntries().stream()
+                    .map(searchEntry -> new LdapEntry(
+                        searchEntry.getDN(),
+                        searchEntry.getAttributes().stream()
+                            .map(attr -> new LdapAttribute(attr.getName(), AttributeReader.read(attr)))
+                            .collect(Collectors.toList())))
+                    .collect(Collectors.toList()));
+
+            LDAPTestUtils.assertHasControl(searchResult, SimplePagedResultsControl.PAGED_RESULTS_OID);
+            SimplePagedResultsControl responseControl = SimplePagedResultsControl.get(searchResult);
+            if (responseControl.moreResultsToReturn()) {
+                resumeCookie = responseControl.getCookie();
             } else {
-                throw new Exception("Connection was closed");
+                break;
             }
-        } else {
-            throw new Exception("Connection not found");
         }
         return new LdapSearch(entries);
     }
