@@ -18,7 +18,7 @@ public class InfoService extends LdapService {
      */
     @WebMethod(operationName = "version")
     public String version() {
-        return version_1_0_0_5();
+        return version_1_0_0_6();
     }
 
     private String version_1_0_0_1() {
@@ -45,5 +45,11 @@ public class InfoService extends LdapService {
         // Добавление чтения единиц с указанием baseDN, а также указанных атрибутов
         // Добавление метода для получения всех возможных атрибутов
         return "1.0.0.5";
+    }
+
+    private String version_1_0_0_6() {
+        /* Добавление чтение атрибута Description, который при наличии кириллицы
+         приходит в base64 */
+        return "1.0.0.6";
     }
 }

@@ -22,11 +22,18 @@ public class AttributeReader {
         } else if (name.equalsIgnoreCase("objectGUID")) {
             result = readObjectGuid(attr);
 
+        } else if (name.equalsIgnoreCase("description")) {
+            result = readDescription(attr);
+
         } else if (!attr.needsBase64Encoding()) {
             result = attr.getValue();
         }
 
         return result;
+    }
+
+    private static String readDescription(Attribute attr) {
+        return attr.getValue();
     }
 
     private static String readGECOS(Attribute attr) {
