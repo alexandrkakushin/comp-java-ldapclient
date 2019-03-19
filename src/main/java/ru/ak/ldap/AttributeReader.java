@@ -25,6 +25,9 @@ public class AttributeReader {
         } else if (name.equalsIgnoreCase("description")) {
             result = readDescription(attr);
 
+        } else if (name.equalsIgnoreCase("title")) {
+            result = readTitle(attr);
+
         } else if (!attr.needsBase64Encoding()) {
             result = attr.getValue();
         }
@@ -46,5 +49,9 @@ public class AttributeReader {
 
     private static String readObjectGuid(Attribute attr) {
         return UUIDUtils.bytesToUUID(attr.getValueByteArray()).toString();
+    }
+
+    private static String readTitle(Attribute attr) {
+        return attr.getValue();
     }
 }
