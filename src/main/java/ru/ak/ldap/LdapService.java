@@ -159,7 +159,7 @@ public class LdapService {
             @WebParam(name = "attributes") String attributes) throws Exception {
 
         return search(parameters,
-                attributes.isEmpty() ? null : attributes.split(Pattern.quote(",")));
+                attributes.isEmpty() ? null : attributes.replaceAll("\\s+", "").split(Pattern.quote(",")));
     }
 
     @SuppressWarnings("ValidExternallyBoundObject")
