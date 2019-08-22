@@ -3,14 +3,16 @@ package ru.ak.ldap;
 import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.util.Base64;
 
+import java.util.Arrays;
+
 /**
  * @author a.kakushin
  */
 public class AttributeReader {
 
-    public static String read(Attribute attr) {
+    public static Object read(Attribute attr) {
 
-        String result = null;
+        Object result = null;
         String name = attr.getName();
 
         if (name.equalsIgnoreCase("gecos")) {
@@ -28,8 +30,15 @@ public class AttributeReader {
         } else if (name.equalsIgnoreCase("title")) {
             result = readTitle(attr);
 
-        } else if (!attr.needsBase64Encoding()) {
+        } else if (name.equalsIgnoreCase("manager")) {
             result = attr.getValue();
+
+        } else if (!attr.needsBase64Encoding()) {
+            if (attr.size() == 1) {
+                result = attr.getValue();
+            } else {
+                result = Arrays.asList(attr.getValues());
+            }
         }
 
         return result;

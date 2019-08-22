@@ -18,7 +18,7 @@ public class InfoService extends LdapService {
      */
     @WebMethod(operationName = "version")
     public String version() {
-        return version_1_0_0_8();
+        return version_1_0_0_10();
     }
 
     private String version_1_0_0_1() {
@@ -62,5 +62,15 @@ public class InfoService extends LdapService {
     private String version_1_0_0_8() {
         /* Удаление пробелов и непечатаемых символов из строки, содержащей список атрибутов */
         return "1.0.0.8";
+    }
+
+    private String version_1_0_0_9() {
+        /* Добавлено чтение атрибута manager */
+        return "1.0.0.9";
+    }
+
+    private String version_1_0_0_10() {
+        /* Добавлено чтение массивов, например memberOf */
+        return "1.0.0.10";
     }
 }

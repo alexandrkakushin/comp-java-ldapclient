@@ -1,29 +1,43 @@
 package ru.ak.model;
 
-import lombok.Data;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
  * @author a.kakushin
  */
-@Data
-@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement
 public class LdapAttribute {
 
     @XmlAttribute
     private String name;
 
-    @XmlAttribute
-    private String value;
+    @XmlElement
+    private List<Object> value = new ArrayList<>();
 
-    public LdapAttribute(String name, String value) {
+    public LdapAttribute() {}
+
+    public LdapAttribute(String name, Object value) {
+        this();
         this.name = name;
         if (value != null) {
-            this.value = value.trim();
+            if (value instanceof List<?>) {
+                this.value.addAll((List) value);
+            } else {
+                this.value.add(value);
+            }
         }
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public List<Object> getValue() {
+        return value;
     }
 }
