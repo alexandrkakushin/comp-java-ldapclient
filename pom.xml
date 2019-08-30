@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ru.ak</groupId>
-    <artifactId>ldap</artifactId>
+    <artifactId>ldapclient</artifactId>
     <version>1.0</version>
 
     <packaging>jar</packaging>
@@ -19,7 +19,7 @@
         <compile.encoding>utf-8</compile.encoding>
         <content.encoding>utf-8</content.encoding>
 
-        <finalname>ldap</finalname>
+        <finalname>ldapclient</finalname>
 
         <unboundid.version>4.0.11</unboundid.version>
         <lombok.version>1.18.8</lombok.version>
