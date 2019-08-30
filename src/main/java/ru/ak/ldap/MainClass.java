@@ -2,7 +2,6 @@
 package ru.ak.ldap;
 
 import ru.ak.info.InfoService;
-
 import javax.xml.ws.Endpoint;
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +28,6 @@ public class MainClass {
     }
     
     public static void main(String[] args) throws IOException {
-        
         if (System.getProperty("java.util.logging.config.class") == null
             && System.getProperty("java.util.logging.config.file") == null) {
             

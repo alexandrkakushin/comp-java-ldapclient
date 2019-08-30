@@ -26,7 +26,7 @@ public class LdapAttribute {
         this.name = name;
         if (value != null) {
             if (value instanceof List<?>) {
-                this.value.addAll((List) value);
+                this.value.addAll((List<?>) value);
             } else {
                 this.value.add(value);
             }

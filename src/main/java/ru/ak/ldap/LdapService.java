@@ -152,7 +152,7 @@ public class LdapService {
      * Поиск
     */
 
-    @SuppressWarnings("ValidExternallyBoundObject")
+    // @SuppressWarnings("ValidExternallyBoundObject")
     @WebMethod(operationName = "searchByFilter")
     public LdapSearch searchByFilter(
             @WebParam(name = "parameters") SearchParameters parameters,
@@ -162,7 +162,7 @@ public class LdapService {
                 attributes.isEmpty() ? null : attributes.replaceAll("\\s+", "").split(Pattern.quote(",")));
     }
 
-    @SuppressWarnings("ValidExternallyBoundObject")
+    // @SuppressWarnings("ValidExternallyBoundObject")
     @WebMethod(operationName = "availableAttributes")
     public ResponseAvailableAttributes availableAttributes(
             @WebParam(name = "parameters") SearchParameters parameters) throws Exception {
