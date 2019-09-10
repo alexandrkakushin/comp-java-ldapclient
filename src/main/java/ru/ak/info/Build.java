@@ -1,13 +1,12 @@
-package ru.ak.model;
+package ru.ak.info;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
  * @author a.kakushin
  */
-@XmlAccessorType(XmlAccessType.FIELD)
 public class Build {
+
     private String version;
     private String description;
 
@@ -19,10 +18,12 @@ public class Build {
         this.description = description;
     }
 
+    @XmlElement
     public String getVersion() {
         return version;
     }
 
+    @XmlElement
     public String getDescription() {
         return description;
     }

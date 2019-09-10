@@ -1,8 +1,6 @@
 package ru.ak.info;
 
 import ru.ak.ldap.LdapService;
-import ru.ak.model.Build;
-
 import java.util.ArrayList;
 import java.util.List;
 
