@@ -29,7 +29,7 @@
 
         <finalname>ldapclient</finalname>
 
-        <unboundid.version>4.0.11</unboundid.version>
+        <unboundid.version>4.0.14</unboundid.version>
         <lombok.version>1.18.8</lombok.version>
         <jaxws.version>2.3.2</jaxws.version>
         <jaxb-api.version>2.3.1</jaxb-api.version>        
